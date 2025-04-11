@@ -40,10 +40,7 @@ public class Administrador implements Usuario {
 
     @Override
     public void redefinirSenha(String email) {
-        if (this.email.equals(email)) {
-            // Exemplo de redefinição de senha
-            this.senha = "novaSenhaAdmin123";
-        }
+        //Redefinir a senha
     }
 
     // Métodos do ADM

@@ -17,7 +17,7 @@ public class Cliente implements Usuario {
 
 
 
-        //IMPLEMENTAR metodos da interface
+        //metodos da interface
 
     @Override
     public String getCpf() {
@@ -86,7 +86,7 @@ public class Cliente implements Usuario {
         multa.pagarMulta();
     }
 
-    // Getters e setters para multas e reserva, se necessário
+    // Getters e setters para multas e reserva
     public List<Multa> getMultasAtivas() {
         return multasAtivas;
     }
