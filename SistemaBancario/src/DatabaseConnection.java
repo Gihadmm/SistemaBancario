@@ -4,14 +4,28 @@ import java.sql.SQLException;
 
 public class DatabaseConnection {
 
-    // Método para obter a conexão com o banco de dados
-    public static Connection getConnection() throws SQLException {
-        // Defina a URL de conexão, usuário e senha
-        String url = "jdbc:sqlserver://localhost:1433;databaseName=seuBancoDeDados"; // Substitua com suas informações
-        String user = "seuUsuario";  // Substitua com seu nome de usuário
-        String password = "suaSenha"; // Substitua com sua senha
+    // enderço DNS do AWS
+    private static final String HOST = "ec2-3-81-58-96.compute-1.amazonaws.com";
+    private static final int    PORT = 1433;
 
-        // Retorna a conexão com o banco de dados
-        return DriverManager.getConnection(url, user, password);
+    // Nome do BD
+    private static final String DATABASE = "Biblioteca";
+
+    // Login do BD
+    private static final String USER = "sa";
+    private static final String PASS = "pao123";
+
+    // 4) Montando a URL JDBC
+    private static final String URL = String.format(
+            "jdbc:sqlserver://%s:%d;databaseName=%s;encrypt=false;trustServerCertificate=true;",
+            HOST, PORT, DATABASE
+    );
+
+    // construtor privado para evitar instância
+    private DatabaseConnection() { }
+ 
+    // método que será usado pelas suas DAOs
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(URL, USER, PASS);
     }
 }

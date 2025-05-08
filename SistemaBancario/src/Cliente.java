@@ -1,100 +1,69 @@
+import java.util.List;
+import java.util.ArrayList;
+
 public class Cliente implements Usuario {
-        private String cpf;
-        private String nome;
-        private String email;
-        private String senha;
-        private Acesso acesso;
-        private List<Multa> multasAtivas; //Criar Lista para multas
-        private Reserva reserva; // implementar a classe Reserva
+    private String cpf;
+    private String nome;
+    private String email;
+    private String senha;
+    private Acesso acesso;
 
-        public Cliente(String cpf, String nome, String email, String senha) {
-            this.cpf = cpf;
-            this.nome = nome;
-            this.email = email;
-            this.senha = senha;
-            this.acesso = Acesso.CLIENTE;
-        }
+    // lista de todos os empréstimos deste cliente
+    private List<Emprestimo> emprestimos;
 
+    // reserva única (conforme seu diagrama)
+    private Reserva reserva;
 
-
-        //metodos da interface
-
-    @Override
-    public String getCpf() {
-        return cpf;
+    public Cliente(String cpf, String nome, String email, String senha) {
+        this.cpf = cpf;
+        this.nome = nome;
+        this.email = email;
+        this.senha = senha;
+        this.acesso = Acesso.CLIENTE;
+        this.emprestimos = new ArrayList<>();
     }
 
-    @Override
-    public String getNome() {
-        return nome;
-    }
-
-    @Override
-    public String getEmail() {
-        return email;
-    }
-
-    @Override
-    public String getSenha() {
-        return senha;
-    }
-
-    @Override
-    public Acesso getAcesso() {
-        return acesso;
-    }
+    // interface Usuario
+    @Override public String getCpf()     { return cpf; }
+    @Override public String getNome()    { return nome; }
+    @Override public String getEmail()   { return email; }
+    @Override public String getSenha()   { return senha; }
+    @Override public Acesso getAcesso()  { return acesso; }
 
     @Override
     public void redefinirSenha(String email) {
         if (this.email.equals(email)) {
-            // Exemplo de redefinição de senha
             this.senha = "novaSenha123";
         }
     }
 
-    // Métodos específicos do Cliente:
-
-    public void solicitarEmprestimo(Livro livro) {
-        // lógica para solicitação de empréstimo
+    public void adicionarEmprestimo(Emprestimo e) {
+        emprestimos.add(e);
     }
 
-    public void consultarDados() {
-        // consulta de dados pessoais
+    public List<Emprestimo> getEmprestimos() {
+        return emprestimos;
     }
 
-    public void solicitarAlteracaoDados() {
-        // solicitar dados pessoais
+
+    public List<Emprestimo> getEmprestimosComMultaAtiva() {
+        List<Emprestimo> pendentes = new ArrayList<>();
+        for (Emprestimo e : emprestimos) {
+            if (e.getValorMulta() > 0 && !e.isMultaPaga()) {
+                pendentes.add(e);
+            }
+        }
+        return pendentes;
     }
 
-    public void solicitarDevolucao(Livro livro) {
-        // solicitar devolução
+    /**
+     * Quita a multa de um empréstimo específico.
+     */
+    public void pagarMulta(Emprestimo e) {
+        e.pagarMulta();
     }
 
-    public void solicitarRenovacao(Livro livro) {
-        // solicitar renovação
-    }
-
-    public void consultarLivros(String titulo, String autor, String genero) {
-        // consulta de livros
-    }
-
-    public void realizarReserva(Livro livro) {
-        // reservar livro
-    }
-
-    public void pagarMulta(Multa multa) {
-        multa.pagarMulta();
-    }
-
-    // Getters e setters para multas e reserva
-    public List<Multa> getMultasAtivas() {
-        return multasAtivas;
-    }
-
-    public void setMultasAtivas(List<Multa> multasAtivas) {
-        this.multasAtivas = multasAtivas;
-    }
-
+    // reserva
     public Reserva getReserva() {
         return reserva;
     }
@@ -102,5 +71,12 @@ public class Cliente implements Usuario {
     public void setReserva(Reserva reserva) {
         this.reserva = reserva;
     }
-}
 
+    public void solicitarEmprestimo(Livro livro) { /* … */ }
+    public void solicitarDevolucao(Livro livro)  { /* … */ }
+    public void solicitarRenovacao(Livro livro)  { /* … */ }
+    public void realizarReserva(Livro livro)     { /* … */ }
+    public void consultarDados()                 { /* … */ }
+    public void solicitarAlteracaoDados()        { /* … */ }
+    public void consultarLivros(String t, String a, String g) { /* … */ }
+}

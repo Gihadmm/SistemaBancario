@@ -5,12 +5,20 @@ public class Livro {
     private String genero;
     private boolean disponivel;
     private boolean reservado;
+    private int anoPublicacao;
+    private String editora;
+    private String isbn;
+    private int quantidadeExemplares;
 
-    public Livro(int id, String titulo, String autor, String genero) {
+    public Livro(int id, String titulo, String autor, String genero, int anoPublicacao, String editora, String isbn, int quantidadeExemplares) {
         this.id = id;
         this.titulo = titulo;
         this.autor = autor;
         this.genero = genero;
+        this.anoPublicacao = anoPublicacao;
+        this.editora = editora;
+        this.isbn = isbn;
+        this.quantidadeExemplares = quantidadeExemplares;
         this.disponivel = true;
         this.reservado = false;
     }
@@ -50,5 +58,25 @@ public class Livro {
 
     public void setReservado(boolean reservado) {
         this.reservado = reservado;
+    }
+
+    public int getAnoPublicacao() {
+        return anoPublicacao;
+    }
+
+    public String getEditora() {
+        return editora;
+    }
+
+    public String getIsbn() {
+        return isbn;
+    }
+
+    public int getQuantidadeExemplares() {
+        return quantidadeExemplares;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }
