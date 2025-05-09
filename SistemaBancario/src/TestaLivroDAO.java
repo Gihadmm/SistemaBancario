@@ -1,26 +1,32 @@
-import Model.Livro;
 import repository.LivroDAO;
+import Model.Livro;
 
-import java.sql.SQLException;
-
+import java.util.List;
 
 public class TestaLivroDAO {
     public static void main(String[] args) {
         LivroDAO dao = new LivroDAO();
-        Livro livro = new Livro(0, "Dom Casmurro", "Machado de Assis", "Romance", 1899,
-                "Editora A", "1234567890", 5);
 
+        System.out.println("📚 Testando buscarTodos():");
         try {
-            dao.inserir(livro);
-            System.out.println("✅ Model.Livro inserido com ID: " + livro.getId());
-
-            Livro buscado = dao.buscarPorId(livro.getId());
-            if (buscado != null) {
-                System.out.println("🔍 Model.Livro encontrado: " + buscado.getTitulo());
+            List<Livro> livros = dao.buscarTodos();
+            for (Livro livro : livros) {
+                System.out.println("ID: " + livro.getId() + ", Título: " + livro.getTitulo());
             }
+        } catch (Exception e) {
+            System.err.println("❌ Erro ao buscar todos os livros: " + e.getMessage());
+        }
 
-        } catch (SQLException e) {
-            System.err.println("❌ Erro ao interagir com o banco: " + e.getMessage());
+        System.out.println("\n🔎 Testando buscarPorId(1):");
+        try {
+            Livro livro = dao.buscarPorId(1);
+            if (livro != null) {
+                System.out.println("Encontrado: " + livro.getTitulo() + " (ID: " + livro.getId() + ")");
+            } else {
+                System.out.println("Livro com ID 1 não encontrado.");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Erro ao buscar livro por ID: " + e.getMessage());
         }
     }
 }

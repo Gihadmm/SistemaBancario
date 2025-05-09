@@ -7,7 +7,7 @@ import java.sql.SQLException;
 public class DatabaseConnection {
 
     // enderço DNS do AWS
-    private static final String HOST = "ec2-54-156-56-211.compute-1.amazonaws.com";
+    private static final String HOST = "ec2-54-80-217-237.compute-1.amazonaws.com";
     private static final int    PORT = 1433;
 
     // Nome do BD
