@@ -1,3 +1,5 @@
+package Model;
+
 public class Administrador implements Usuario {
     private String cpf;
     private String nome;
@@ -66,7 +68,7 @@ public class Administrador implements Usuario {
     }
 
     public void removerLivro(Livro livro) {
-        // remover Livro
+        // remover Model.Livro
     }
 
     public void gerarRelatorioMultas() {
@@ -78,11 +80,11 @@ public class Administrador implements Usuario {
     }
 
     public void cadastrarADM(Administrador admin) {
-        // cadastrar Administrador
+        // cadastrar Model.Administrador
     }
 
     public void cadastrarCliente(Cliente cliente) {
-        // cadastrar Cliente
+        // cadastrar Model.Cliente
     }
 
     public void realizarEmprestimo(Livro livro, String cpfCliente) {

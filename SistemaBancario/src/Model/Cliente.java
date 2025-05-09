@@ -1,3 +1,5 @@
+package Model;
+
 import java.util.List;
 import java.util.ArrayList;
 
@@ -23,7 +25,7 @@ public class Cliente implements Usuario {
         this.emprestimos = new ArrayList<>();
     }
 
-    // interface Usuario
+    // interface Model.Usuario
     @Override public String getCpf()     { return cpf; }
     @Override public String getNome()    { return nome; }
     @Override public String getEmail()   { return email; }

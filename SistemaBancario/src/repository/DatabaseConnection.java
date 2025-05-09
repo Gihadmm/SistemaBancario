@@ -1,3 +1,5 @@
+package repository;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -5,13 +7,13 @@ import java.sql.SQLException;
 public class DatabaseConnection {
 
     // enderço DNS do AWS
-    private static final String HOST = "ec2-3-81-58-96.compute-1.amazonaws.com";
+    private static final String HOST = "ec2-54-156-56-211.compute-1.amazonaws.com";
     private static final int    PORT = 1433;
 
     // Nome do BD
     private static final String DATABASE = "Biblioteca";
 
-    // Login do BD
+    // Service.LoginService do BD
     private static final String USER = "sa";
     private static final String PASS = "pao123";
 

@@ -1,7 +1,7 @@
-import java.sql.Connection;
-import java.sql.ResultSet;
+import Model.Livro;
+import repository.LivroDAO;
+
 import java.sql.SQLException;
-import java.sql.Statement;
 
 
 public class TestaLivroDAO {
@@ -12,11 +12,11 @@ public class TestaLivroDAO {
 
         try {
             dao.inserir(livro);
-            System.out.println("✅ Livro inserido com ID: " + livro.getId());
+            System.out.println("✅ Model.Livro inserido com ID: " + livro.getId());
 
             Livro buscado = dao.buscarPorId(livro.getId());
             if (buscado != null) {
-                System.out.println("🔍 Livro encontrado: " + buscado.getTitulo());
+                System.out.println("🔍 Model.Livro encontrado: " + buscado.getTitulo());
             }
 
         } catch (SQLException e) {
