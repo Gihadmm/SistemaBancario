@@ -2,5 +2,7 @@ package Model;
 
 public enum StatusEmprestimo {
     ATIVO,
-    CONCLUIDO
+    CONCLUIDO,
+    ATRASADO,
+    RENOVADO
 }

@@ -64,6 +64,57 @@ public class LivroDAO {
         return null;
     }
 
+    // 🔍 NOVO: Buscar por título (parcial ou completo)
+    public List<Livro> buscarPorTitulo(String titulo) throws SQLException {
+        List<Livro> livros = new ArrayList<>();
+        String sql = "SELECT * FROM Livros WHERE titulo LIKE ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, "%" + titulo + "%");
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    livros.add(mapearLivro(rs));
+                }
+            }
+        }
+        return livros;
+    }
+
+    // 🔍 NOVO: Buscar por autor
+    public List<Livro> buscarPorAutor(String autor) throws SQLException {
+        List<Livro> livros = new ArrayList<>();
+        String sql = "SELECT * FROM Livros WHERE autor LIKE ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, "%" + autor + "%");
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    livros.add(mapearLivro(rs));
+                }
+            }
+        }
+        return livros;
+    }
+
+    // 🔍 NOVO: Buscar por gênero
+    public List<Livro> buscarPorGenero(String genero) throws SQLException {
+        List<Livro> livros = new ArrayList<>();
+        String sql = "SELECT * FROM Livros WHERE genero LIKE ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, "%" + genero + "%");
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    livros.add(mapearLivro(rs));
+                }
+            }
+        }
+        return livros;
+    }
+
     // 4) ATUALIZAR todos os campos de um livro
     public void atualizar(Livro livro) throws SQLException {
         String sql = "UPDATE Livros SET titulo = ?, autor = ?, genero = ?, anoPublicacao = ?, " +
@@ -123,8 +174,8 @@ public class LivroDAO {
                 rs.getInt("quantidadeExemplares")
         );
         // Caso tenha as colunas no banco, descomente:
-        // livro.setDisponivel(rs.getBoolean("disponivel"));
-        // livro.setReservado(rs.getBoolean("reservado"));
+        //livro.setDisponivel(rs.getBoolean("disponivel"));
+        //livro.setReservado(rs.getBoolean("reservado"));
         return livro;
     }
 }

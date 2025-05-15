@@ -1,6 +1,7 @@
 package Model;
 
 public class Livro {
+    //private StatusLivro status;
     private int id;
     private String titulo;
     private String autor;

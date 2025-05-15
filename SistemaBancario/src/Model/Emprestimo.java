@@ -8,38 +8,36 @@ public class Emprestimo {
     private Date dataEmprestimo;
     private Date dataDevolucaoPrevista;
     private Date dataDevolucaoReal;
-    private StatusEmprestimo status;
-
-    // campos de multa
+    private StatusEmprestimo status;    
+    private Exemplar exemplar;
+    private Cliente cliente;
     private double valorMulta;
     private boolean multaPaga;
 
-    public Emprestimo(int id, Date dataEmprestimo, Date dataDevolucaoPrevista) {
+    // Construtor completo
+    public Emprestimo(int id, Date dataEmprestimo, Date dataDevolucaoPrevista,
+                      Exemplar exemplar, Cliente cliente) {
         this.id = id;
         this.dataEmprestimo = dataEmprestimo;
         this.dataDevolucaoPrevista = dataDevolucaoPrevista;
+        this.exemplar = exemplar;
+        this.cliente = cliente;
         this.status = StatusEmprestimo.ATIVO;
         this.valorMulta = 0.0;
         this.multaPaga = false;
     }
 
-    /**
-     * Calcula quantos dias se passaram entre a data prevista e a real.
-     * Se dataDevolucaoReal for null, retorna 0.
-     */
+    // Calcula dias de atraso
     public int calcularDiasAtraso() {
         if (dataDevolucaoReal == null) {
             return 0;
         }
         long diffMillis = dataDevolucaoReal.getTime() - dataDevolucaoPrevista.getTime();
-        return (int) TimeUnit.DAYS.convert(diffMillis, TimeUnit.MILLISECONDS);
+        long dias = TimeUnit.DAYS.convert(diffMillis, TimeUnit.MILLISECONDS);
+        return (int) Math.max(dias, 0); // não retorna valor negativo
     }
 
-    /**
-     * Aplica multa, calculando valorMulta = diasAtraso * taxaPorDia.
-     * Exemplo: R$ 2,00 por dia de atraso.
-     * Marca multaPaga = false para sinalizar pendência.
-     */
+    // Aplica multa com taxa fixa por dia de atraso
     public void aplicarMulta() {
         int diasAtraso = calcularDiasAtraso();
         if (diasAtraso > 0) {
@@ -49,14 +47,20 @@ public class Emprestimo {
         }
     }
 
-    /** Marca a multa como paga (só faz sentido se valorMulta > 0). */
+    // Marca multa como paga
     public void pagarMulta() {
         if (this.valorMulta > 0) {
             this.multaPaga = true;
         }
     }
 
-    // —— getters e setters ——
+    // Zera a multa
+    public void resetarMulta() {
+        this.valorMulta = 0.0;
+        this.multaPaga = false;
+    }
+
+    // —— Getters e Setters completos ——
 
     public int getId() {
         return id;
@@ -68,6 +72,10 @@ public class Emprestimo {
 
     public Date getDataDevolucaoPrevista() {
         return dataDevolucaoPrevista;
+    }
+
+    public void setDataDevolucaoPrevista(Date dataDevolucaoPrevista) {
+        this.dataDevolucaoPrevista = dataDevolucaoPrevista;
     }
 
     public Date getDataDevolucaoReal() {
@@ -86,17 +94,35 @@ public class Emprestimo {
         this.status = status;
     }
 
+    public Exemplar getExemplar() {
+        return exemplar;
+    }
+
+    public void setExemplar(Exemplar exemplar) {
+        this.exemplar = exemplar;
+    }
+
+    public Cliente getCliente() {
+        return cliente;
+    }
+
+    public void setCliente(Cliente cliente) {
+        this.cliente = cliente;
+    }
+
     public double getValorMulta() {
         return valorMulta;
+    }
+
+    public void setValorMulta(double valorMulta) {
+        this.valorMulta = valorMulta;
     }
 
     public boolean isMultaPaga() {
         return multaPaga;
     }
 
-    /** Zera a multa caso seja necessário reaplicar após uma nova devolução */
-    public void resetarMulta() {
-        this.valorMulta = 0.0;
-        this.multaPaga = false;
+    public void setMultaPaga(boolean multaPaga) {
+        this.multaPaga = multaPaga;
     }
 }
