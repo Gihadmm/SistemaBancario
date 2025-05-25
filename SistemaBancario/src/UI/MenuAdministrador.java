@@ -7,11 +7,13 @@ import Model.Emprestimo;
 import Model.StatusEmprestimo;
 import  Model.Usuario;
 import repository.LivroDAO;
+import repository.ReservaDAO;
 import repository.UsuarioDAO;
 import repository.EmprestimoDAO;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 
@@ -616,35 +618,300 @@ public class MenuAdministrador {
 
                 case "11": // Realizar Renovação
                     try {
-                        System.out.print("ID do empréstimo: ");
-                        int id11 = Integer.parseInt(scanner.nextLine());
-                        Emprestimo e11 = emprestimoDAO.buscarPorId(id11);
-                        if (e11 == null || e11.getStatus() != StatusEmprestimo.ATIVO) {
-                            System.out.println("❌ Empréstimo inválido.");
+                        System.out.println("📌 Buscar usuário para renovar empréstimo:");
+                        System.out.print("Buscar por (1) CPF, (2) Nome, (3) Email: ");
+                        String criterio11 = scanner.nextLine();
+                        List<Usuario> usuarios11 = new ArrayList<>();
+
+                        switch (criterio11) {
+                            case "1":
+                                System.out.print("CPF: ");
+                                Usuario u1 = usuarioDAO.buscarPorCpf(scanner.nextLine());
+                                if (u1 != null) usuarios11.add(u1);
+                                break;
+                            case "2":
+                                System.out.print("Nome: ");
+                                usuarios11.addAll(usuarioDAO.buscarPorNome(scanner.nextLine()));
+                                break;
+                            case "3":
+                                System.out.print("Email: ");
+                                usuarios11.addAll(usuarioDAO.buscarPorEmail(scanner.nextLine()));
+                                break;
+                            default:
+                                System.out.println("❌ Filtro inválido.");
+                                break;
+                        }
+
+                        if (usuarios11.isEmpty()) {
+                            System.out.println("❌ Nenhum usuário encontrado.");
                             break;
                         }
-                        e11.renovar(7); // +7 dias
-                        emprestimoDAO.atualizarRenovacao(e11);
-                        System.out.println("✔️ Renovação até: " + e11.getDataDevolucaoPrevista());
+
+                        // Escolher usuário
+                        System.out.println("👥 Usuários encontrados:");
+                        for (int i = 0; i < usuarios11.size(); i++) {
+                            Usuario u = usuarios11.get(i);
+                            System.out.printf("[%d] %s (%s)\n", i + 1, u.getNome(), u.getEmail());
+                        }
+
+                        System.out.print("Selecione um número ou 0 para cancelar: ");
+                        int escolha = Integer.parseInt(scanner.nextLine());
+                        if (escolha == 0 || escolha > usuarios11.size()) break;
+
+                        Usuario selecionado = usuarios11.get(escolha - 1);
+                        if (!(selecionado instanceof Cliente)) {
+                            System.out.println("⚠️ Apenas clientes possuem empréstimos.");
+                            break;
+                        }
+
+                        Cliente cli = (Cliente) selecionado;
+                        List<Emprestimo> emprestimos = emprestimoDAO.listarPorCliente(cli.getCpf());
+                        List<Emprestimo> ativos = emprestimos.stream()
+                                .filter(e -> e.getStatus() == StatusEmprestimo.ATIVO)
+                                .toList();
+
+                        if (ativos.isEmpty()) {
+                            System.out.println("❌ Este cliente não possui empréstimos ativos.");
+                            break;
+                        }
+
+                        System.out.println("📚 Empréstimos ativos:");
+                        for (int i = 0; i < ativos.size(); i++) {
+                            Emprestimo e = ativos.get(i);
+                            System.out.printf("[%d] Livro: %s | Devolver até: %s\n", i + 1,
+                                    e.getLivro().getTitulo(), e.getDataDevolucaoPrevista());
+                        }
+
+                        System.out.print("Escolha o número para renovar ou 0 para cancelar: ");
+                        int escolhaEmp = Integer.parseInt(scanner.nextLine());
+                        if (escolhaEmp == 0 || escolhaEmp > ativos.size()) break;
+
+                        Emprestimo escolhido = ativos.get(escolhaEmp - 1);
+
+                        // Verificar se há reservas para o livro
+                        ReservaDAO reservaDAO = new ReservaDAO();
+                        boolean temReservas = reservaDAO.temReservasAtivas(escolhido.getLivro().getId());
+                        if (temReservas) {
+                            System.out.println("❌ Não é possível renovar: há reservas ativas para este livro.");
+                            break;
+                        }
+
+                        // Renovar
+                        escolhido.renovar(7); // +7 dias
+                        emprestimoDAO.atualizarRenovacao(escolhido);
+                        System.out.println("✔️ Renovado. Nova data de devolução: " + escolhido.getDataDevolucaoPrevista());
+
                     } catch (Exception e) {
                         System.err.println("❌ Erro: " + e.getMessage());
                     }
                     break;
 
-                case "12":
-                    // gerarRelatorioMultas()
-                    System.out.println("📌 Função de relatório de multas não implementada.");
+
+                case "12": // Relatório de Multas (pendentes primeiro / por cliente ou geral)
+                    try {
+                        System.out.println("\n📄 Relatório de Multas:");
+                        System.out.println("1. Ver todas as multas");
+                        System.out.println("2. Pesquisar multas por cliente");
+                        System.out.print("Escolha: ");
+                        String tipoRelatorio = scanner.nextLine();
+
+                        List<Emprestimo> todos;
+
+                        if (tipoRelatorio.equals("2")) {
+                            System.out.print("Digite CPF do cliente: ");
+                            String cpfBusca = scanner.nextLine();
+                            todos = emprestimoDAO.listarPorCliente(cpfBusca);
+                        } else {
+                            todos = emprestimoDAO.listarTodos();
+                        }
+
+                        if (todos.isEmpty()) {
+                            System.out.println("⚠️ Nenhum empréstimo encontrado.");
+                            break;
+                        }
+
+                        // Filtra apenas os que têm multa e ordena: pendentes primeiro, depois por valor
+                        List<Emprestimo> ordenados = todos.stream()
+                                .filter(e -> e.getValorMulta() > 0)
+                                .sorted(Comparator
+                                        .comparing(Emprestimo::isMultaPaga) // false (pendente) vem antes de true (paga)
+                                        .thenComparing(Emprestimo::getValorMulta, Comparator.reverseOrder())
+                                ).toList();
+
+                        if (ordenados.isEmpty()) {
+                            System.out.println("🟢 Nenhuma multa registrada.");
+                            break;
+                        }
+
+                        System.out.println("\n📋 Relatório de Multas:");
+                        System.out.println("═════════════════════════════════════════════════════════════════════════════════════════════════");
+                        for (int i = 0; i < ordenados.size(); i++) {
+                            Emprestimo e = ordenados.get(i);
+                            int dias = e.calcularDiasAtraso();
+
+                            System.out.printf("[%d] Cliente: %s | CPF: %s | Livro: %s%n",
+                                    i + 1, e.getCliente().getNome(), e.getCliente().getCpf(), e.getLivro().getTitulo());
+
+                            System.out.printf("     Multa: R$ %.2f | Dias de atraso: %d | Situação: %s%n",
+                                    e.getValorMulta(), dias, e.isMultaPaga() ? "PAGA" : "PENDENTE");
+                            System.out.println("─────────────────────────────────────────────────────────────────────────────────────────────────");
+                        }
+
+                        System.out.print("Digite o número da multa para ver o perfil do cliente (ou 0 para voltar): ");
+                        String entrada = scanner.nextLine();
+                        if (entrada.equals("0")) break;
+
+                        int escolha = Integer.parseInt(entrada);
+                        if (escolha < 1 || escolha > ordenados.size()) {
+                            System.out.println("❌ Opção inválida.");
+                            break;
+                        }
+
+                        Emprestimo selecionado = ordenados.get(escolha - 1);
+                        Cliente cli = selecionado.getCliente();
+                        System.out.println("\n📄 Perfil do Cliente:");
+                        System.out.println("Nome: " + cli.getNome());
+                        System.out.println("CPF: " + cli.getCpf());
+                        System.out.println("Email: " + cli.getEmail());
+                        System.out.println("────────────────────────────────────────────────────────────");
+
+                    } catch (Exception e) {
+                        System.err.println("❌ Erro no relatório de multas: " + e.getMessage());
+                    }
                     break;
 
-                case "13":
-                    // gerarRelatorioEmprestimos()
-                    System.out.println("📌 Função de relatório de empréstimos não implementada.");
+
+                case "13": // Relatório de Empréstimos por Cliente
+                    try {
+                        List<Emprestimo> todos = emprestimoDAO.listarTodos();
+
+                        // Filtrar apenas os ativos e ordenar por data prevista
+                        List<Emprestimo> ativos = todos.stream()
+                                .filter(e -> e.getStatus() == StatusEmprestimo.ATIVO)
+                                .sorted(Comparator.comparing(Emprestimo::getDataDevolucaoPrevista))
+                                .toList();
+
+                        if (ativos.isEmpty()) {
+                            System.out.println("📭 Nenhum empréstimo ativo no momento.");
+                            break;
+                        }
+
+                        System.out.println("\n📋 Empréstimos Ativos (mais próximos do vencimento primeiro):");
+                        System.out.println("═══════════════════════════════════════════════════════════════");
+                        for (Emprestimo e : ativos) {
+                            System.out.printf("Livro: %-30s | Cliente: %-20s | CPF: %s | Previsto: %s%n",
+                                    e.getLivro().getTitulo(),
+                                    e.getCliente().getNome(),
+                                    e.getCliente().getCpf(),
+                                    e.getDataDevolucaoPrevista());
+                        }
+
+                    } catch (SQLException e) {
+                        System.err.println("❌ Erro ao gerar relatório: " + e.getMessage());
+                    }
                     break;
 
-                case "14":
-                    // realizarPagamentoMulta()
-                    System.out.println("📌 Função de pagamento de multa não implementada.");
+
+
+                case "14": // Pagamento de Multa
+                    try {
+                        System.out.println("🔎 Buscar cliente por:");
+                        System.out.println("1. CPF");
+                        System.out.println("2. Nome");
+                        System.out.println("3. Email");
+                        System.out.print("Escolha: ");
+                        String opBusca = scanner.nextLine();
+
+                        List<Usuario> candidatos = new ArrayList<>();
+
+                        switch (opBusca) {
+                            case "1":
+                                System.out.print("CPF: ");
+                                candidatos.addAll(usuarioDAO.buscarPorCpfParcial(scanner.nextLine()));
+                                break;
+                            case "2":
+                                System.out.print("Nome: ");
+                                candidatos.addAll(usuarioDAO.buscarPorNome(scanner.nextLine()));
+                                break;
+                            case "3":
+                                System.out.print("Email: ");
+                                candidatos.addAll(usuarioDAO.buscarPorEmail(scanner.nextLine()));
+                                break;
+                            default:
+                                System.out.println("❌ Opção inválida.");
+                                break;
+                        }
+
+                        if (candidatos.isEmpty()) {
+                            System.out.println("❌ Nenhum usuário encontrado.");
+                            break;
+                        }
+
+                        System.out.println("\n👥 Usuários encontrados:");
+                        for (int i = 0; i < candidatos.size(); i++) {
+                            Usuario u = candidatos.get(i);
+                            System.out.printf("[%d] %s — %s (%s)\n", i + 1, u.getNome(), u.getEmail(), u.getCpf());
+                        }
+
+                        System.out.print("\nEscolha o número do usuário: ");
+                        int escolhido = Integer.parseInt(scanner.nextLine()) - 1;
+                        if (escolhido < 0 || escolhido >= candidatos.size()) {
+                            System.out.println("❌ Número inválido.");
+                            break;
+                        }
+
+                        Usuario selecionado = candidatos.get(escolhido);
+                        if (!(selecionado instanceof Cliente)) {
+                            System.out.println("❌ Esse usuário não é um cliente.");
+                            break;
+                        }
+
+                        Cliente cliente = (Cliente) selecionado;
+                        List<Emprestimo> emprestimos = emprestimoDAO.listarPorCliente(cliente.getCpf());
+                        List<Emprestimo> comMulta = emprestimos.stream()
+                                .filter(e -> e.getValorMulta() > 0 && e.getStatus() == StatusEmprestimo.CONCLUIDO && !e.isMultaPaga())
+                                .toList();
+
+                        if (comMulta.isEmpty()) {
+                            System.out.println("✅ Esse cliente não possui multas pendentes.");
+                            break;
+                        }
+
+                        System.out.println("\n💰 Multas pendentes:");
+                        for (int i = 0; i < comMulta.size(); i++) {
+                            Emprestimo e = comMulta.get(i);
+                            System.out.printf("[%d] Livro: %s | Valor: R$ %.2f | Dias em atraso: %d\n",
+                                    i + 1,
+                                    e.getLivro().getTitulo(),
+                                    e.getValorMulta(),
+                                    e.calcularDiasAtraso()
+                            );
+                        }
+
+                        System.out.print("Escolha o número da multa para pagar: ");
+                        int escolhaMulta = Integer.parseInt(scanner.nextLine()) - 1;
+                        if (escolhaMulta < 0 || escolhaMulta >= comMulta.size()) {
+                            System.out.println("❌ Opção inválida.");
+                            break;
+                        }
+
+                        Emprestimo multaSelecionada = comMulta.get(escolhaMulta);
+                        System.out.print("Confirmar pagamento da multa (S/N)? ");
+                        String confirm = scanner.nextLine().trim().toUpperCase();
+
+                        if (confirm.equals("S")) {
+                            multaSelecionada.pagarMulta();
+                            emprestimoDAO.atualizarDevolucao(multaSelecionada);
+                            System.out.println("✅ Multa paga com sucesso!");
+                        } else {
+                            System.out.println("❌ Pagamento cancelado.");
+                        }
+
+                    } catch (Exception e) {
+                        System.err.println("❌ Erro ao pagar multa: " + e.getMessage());
+                    }
                     break;
+
 
                 case "0":
                     System.out.println("Logout efetuado.");

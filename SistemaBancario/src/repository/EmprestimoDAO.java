@@ -140,4 +140,19 @@ public class EmprestimoDAO {
         e.setMultaPaga(paga);
         return e;
     }
+
+    public List<Emprestimo> listarTodos() throws SQLException {
+        String sql = "SELECT * FROM Emprestimos";
+        List<Emprestimo> lista = new ArrayList<>();
+        try (Connection c = DatabaseConnection.getConnection();
+             Statement stmt = c.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                lista.add(mapear(rs));
+            }
+        }
+        return lista;
+    }
+
 }

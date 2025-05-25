@@ -57,4 +57,18 @@ public class ReservaDAO {
         }
         return lista;
     }
+
+    public boolean temReservasAtivas(int livroId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM Reservas WHERE id_livro = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, livroId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return rs.getInt(1) > 0;
+            }
+        }
+        return false;
+    }
+
 }
