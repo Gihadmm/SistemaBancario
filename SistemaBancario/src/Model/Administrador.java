@@ -7,6 +7,7 @@ public class Administrador implements Usuario {
     private String senha;
     private Acesso acesso;
 
+
     public Administrador(String cpf, String nome, String email, String senha) {
         this.cpf = cpf;
         this.nome = nome;
@@ -15,6 +16,10 @@ public class Administrador implements Usuario {
         this.acesso = Acesso.ADMINISTRADOR;
     }
 
+
+    @Override public void setNome(String nome) { this.nome = nome; }
+    @Override public void setEmail(String email) { this.email = email; }
+    @Override public void setSenha(String senha) { this.senha = senha; }
     @Override
     public String getCpf() {
         return cpf;

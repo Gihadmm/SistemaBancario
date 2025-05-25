@@ -104,6 +104,21 @@ public class EmprestimoDAO {
         return lista;
     }
 
+    //verifica se o livro está em um emprestimo ativo
+    public boolean livroPossuiEmprestimoAtivo(int idLivro) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM Emprestimos WHERE id_livro = ? AND status = 'Ativo'";
+        try (Connection c = DatabaseConnection.getConnection();
+             PreparedStatement p = c.prepareStatement(sql)) {
+            p.setInt(1, idLivro);
+            try (ResultSet rs = p.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        }
+        return false;
+    }
+
     private Emprestimo mapear(ResultSet rs)throws SQLException{
         int id=rs.getInt("id");
         Date demp=rs.getDate("dataEmprestimo");

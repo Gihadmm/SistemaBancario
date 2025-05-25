@@ -4,6 +4,8 @@ import Model.Cliente;
 import Model.Administrador;
 import Model.Acesso;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UsuarioDAO {
     public Usuario buscarPorCpf(String cpf) throws SQLException {
@@ -92,4 +94,83 @@ public class UsuarioDAO {
             stmt.executeUpdate();
         }
     }
+
+    public List<Usuario> buscarPorNome(String nome) throws SQLException {
+        List<Usuario> lista = new ArrayList<>();
+        String sql = "SELECT * FROM Usuarios WHERE nome LIKE ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, "%" + nome + "%");
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapearUsuario(rs));
+                }
+            }
+        }
+        return lista;
+    }
+
+
+    public List<Usuario> buscarPorEmail(String email) throws SQLException {
+        List<Usuario> lista = new ArrayList<>();
+        String sql = "SELECT * FROM Usuarios WHERE email LIKE ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, "%" + email + "%");
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapearUsuario(rs));
+                }
+            }
+        }
+        return lista;
+    }
+
+    private Usuario mapearUsuario(ResultSet rs) throws SQLException {
+        String acesso = rs.getString("acesso");
+        if (Acesso.ADMINISTRADOR.name().equals(acesso)) {
+            return new Administrador(
+                    rs.getString("cpf"),
+                    rs.getString("nome"),
+                    rs.getString("email"),
+                    rs.getString("senha")
+            );
+        } else {
+            return new Cliente(
+                    rs.getString("cpf"),
+                    rs.getString("nome"),
+                    rs.getString("email"),
+                    rs.getString("senha")
+            );
+        }
+    }
+
+    public void atualizarCliente(Cliente c) throws SQLException {
+        String sql = "UPDATE Usuarios SET nome=?, email=?, senha=? WHERE cpf=?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, c.getNome());
+            stmt.setString(2, c.getEmail());
+            stmt.setString(3, c.getSenha());
+            stmt.setString(4, c.getCpf());
+            stmt.executeUpdate();
+        }
+    }
+
+    public void atualizarAdministrador(Administrador a) throws SQLException {
+        String sql = "UPDATE Usuarios SET nome=?, email=?, senha=? WHERE cpf=?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, a.getNome());
+            stmt.setString(2, a.getEmail());
+            stmt.setString(3, a.getSenha());
+            stmt.setString(4, a.getCpf());
+            stmt.executeUpdate();
+        }
+    }
+
+
+
 }

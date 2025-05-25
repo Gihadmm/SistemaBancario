@@ -9,6 +9,7 @@ public class Cliente implements Usuario {
     private Acesso acesso;
     private List<Emprestimo> emprestimos;
 
+
     public Cliente(String cpf, String nome, String email, String senha) {
         this.cpf=cpf; this.nome=nome; this.email=email; this.senha=senha;
         this.acesso=Acesso.CLIENTE;
@@ -24,6 +25,10 @@ public class Cliente implements Usuario {
     @Override public void redefinirSenha(String em) {
         if(email.equals(em)) senha="novaSenha123";
     }
+    @Override public void setNome(String nome) { this.nome = nome; }
+    @Override public void setEmail(String email) { this.email = email; }
+    @Override public void setSenha(String senha) { this.senha = senha; }
+
 
     // Empréstimos
     public List<Emprestimo> getEmprestimos() {return emprestimos;}
