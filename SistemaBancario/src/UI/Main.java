@@ -1,111 +1,83 @@
 package UI;
 
-import java.util.Scanner;
-
 import Model.Usuario;
 import Model.Cliente;
 import Model.Administrador;
-import Model.Acesso;
-import Service.LoginService;
 import repository.UsuarioDAO;
-import UI.MenuAdministrador;
-import UI.MenuCliente;
+import repository.LivroDAO;
+import repository.EmprestimoDAO;
+
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws Exception {
         Scanner scanner = new Scanner(System.in);
-        UsuarioDAO udao = new UsuarioDAO();
+        UsuarioDAO usuarioDAO = new UsuarioDAO();
+        LivroDAO livroDAO = new LivroDAO();
+        EmprestimoDAO emprestimoDAO = new EmprestimoDAO();
 
-        int opcao;
-        do {
-            System.out.println("\n=== Sistema de Biblioteca ===");
-            System.out.println("1. Login");
-            System.out.println("2. Cadastro");
-            System.out.println("3. Recuperar senha");
-            System.out.println("0. Sair");
-            System.out.print("Escolha uma opção: ");
-            opcao = Integer.parseInt(scanner.nextLine());
+        while (true) {
+            System.out.println("╔════════════════════════════════════════╗");
+            System.out.println("║      SISTEMA DE BIBLIOTECA DIGITAL     ║");
+            System.out.println("╠════════════════════════════════════════╣");
+            System.out.println("║ 1. Login                               ║");
+            System.out.println("║ 2. Cadastro                            ║");
+            System.out.println("║ 3. Recuperar Senha                     ║");
+            System.out.println("║ 0. Sair                                ║");
+            System.out.println("╚════════════════════════════════════════╝");
+            System.out.print("Opção: ");
+            String opc = scanner.nextLine();
 
-            switch (opcao) {
-                case 1:
-                    // Login
-                    System.out.print("E-mail: ");
-                    String email = scanner.nextLine();
+            switch (opc) {
+                case "0":
+                    System.out.println("👋 Encerrando sistema. Até mais!");
+                    scanner.close();
+                    return;
+
+                case "1":
+                    System.out.print("CPF: ");
+                    String cpf = scanner.nextLine();
                     System.out.print("Senha: ");
                     String senha = scanner.nextLine();
 
-                    Usuario usuario = LoginService.realizarLogin(email, senha);
-                    if (usuario == null) {
-                        System.out.println("❌ Credenciais inválidas.");
-                    } else if (usuario.getAcesso() == Acesso.ADMINISTRADOR) {
-                        MenuAdministrador.executar(scanner, (Administrador) usuario);
+                    Usuario user = usuarioDAO.buscarPorCpf(cpf);
+                    if (user == null || !user.getSenha().equals(senha)) {
+                        System.out.println("❌ Usuário ou senha inválidos.");
+                        break;
+                    }
+
+                    if (user.getAcesso() == Model.Acesso.ADMINISTRADOR) {
+                        System.out.println("✔️ Bem-vindo ADM, " + user.getNome());
+                        MenuAdministrador.executar(scanner, livroDAO, usuarioDAO, emprestimoDAO);
+
                     } else {
-                        MenuCliente.executar(scanner, (Cliente) usuario);
+                        System.out.println("✔️ Bem-vindo, " + user.getNome());
+                        MenuCliente.executar(scanner, (Cliente) user);
                     }
                     break;
 
-                case 2:
-                    // Cadastro
-                    // Se for o primeiro usuário, força ADM; senão, cadastra CLIENTE
-                    if (udao.countUsuarios() == 0) {
-                        System.out.println(">>> Primeiro usuário: cadastro de ADMINISTRADOR <<<");
-                        cadastrarADM(scanner, udao);
-                    } else {
-                        System.out.println(">>> Cadastro de CLIENTE <<<");
-                        cadastrarCliente(scanner, udao);
-                    }
+                case "2":
+                    System.out.print("CPF: ");
+                    String cpf2 = scanner.nextLine();
+                    System.out.print("Nome: ");
+                    String nome = scanner.nextLine();
+                    System.out.print("Email: ");
+                    String email = scanner.nextLine();
+                    System.out.print("Senha: ");
+                    String senha2 = scanner.nextLine();
+
+                    Cliente novoCliente = new Cliente(cpf2, nome, email, senha2);
+                    usuarioDAO.inserirCliente(novoCliente);
+                    System.out.println("✔️ Cliente cadastrado com sucesso!");
                     break;
 
-                case 3:
-                    // Recuperar senha (exemplo simples que redefine para uma senha padrão)
-                    System.out.print("Informe seu e-mail: ");
-                    String mail = scanner.nextLine();
-                    if (udao.atualizarSenha(mail, "senha@123")) {
-                        System.out.println("✔️ Sua senha foi resetada para 'senha@123'. Por favor, altere após o login.");
-                    } else {
-                        System.out.println("❌ E-mail não encontrado.");
-                    }
-                    break;
-
-                case 0:
-                    System.out.println("Encerrando o sistema...");
+                case "3":
+                    System.out.println("🔐 Função de recuperação de senha ainda será implementada.");
                     break;
 
                 default:
-                    System.out.println("Opção inválida!");
+                    System.out.println("❌ Opção inválida.");
             }
-        } while (opcao != 0);
-
-        scanner.close();
-    }
-
-    private static void cadastrarADM(Scanner scanner, UsuarioDAO udao) throws Exception {
-        System.out.print("CPF: ");
-        String cpf = scanner.nextLine();
-        System.out.print("Nome: ");
-        String nome = scanner.nextLine();
-        System.out.print("E-mail: ");
-        String email = scanner.nextLine();
-        System.out.print("Senha: ");
-        String senha = scanner.nextLine();
-
-        Administrador adm = new Administrador(cpf, nome, email, senha);
-        udao.inserirUsuario(adm);
-        System.out.println("✔️ Administrador criado.");
-    }
-
-    private static void cadastrarCliente(Scanner scanner, UsuarioDAO udao) throws Exception {
-        System.out.print("CPF: ");
-        String cpf = scanner.nextLine();
-        System.out.print("Nome: ");
-        String nome = scanner.nextLine();
-        System.out.print("E-mail: ");
-        String email = scanner.nextLine();
-        System.out.print("Senha: ");
-        String senha = scanner.nextLine();
-
-        Cliente cli = new Cliente(cpf, nome, email, senha);
-        udao.inserirUsuario(cli);
-        System.out.println("✔️ Cliente criado.");
+        }
     }
 }

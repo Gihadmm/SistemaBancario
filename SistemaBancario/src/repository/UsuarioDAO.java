@@ -1,82 +1,53 @@
 package repository;
-
 import Model.Usuario;
-import Model.Administrador;
 import Model.Cliente;
+import Model.Administrador;
 import Model.Acesso;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-
-/**
- * DAO para operações CRUD e contagem sobre a tabela Usuarios.
- */
 public class UsuarioDAO {
-
-    /**
-     * Conta quantos usuários existem na tabela.
-     * @return número total de usuários
-     * @throws SQLException em caso de erro de acesso ao banco
-     */
-    public int countUsuarios() throws SQLException {
-        String sql = "SELECT COUNT(*) FROM Usuarios";
+    public Usuario buscarPorCpf(String cpf) throws SQLException {
+        String sql = "SELECT * FROM Usuarios WHERE cpf = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            rs.next();
-            return rs.getInt(1);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, cpf);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (!rs.next()) return null;
+                String acesso = rs.getString("acesso");
+                if (Acesso.ADMINISTRADOR.name().equals(acesso)) {
+                    return new Administrador(
+                            rs.getString("cpf"),
+                            rs.getString("nome"),
+                            rs.getString("email"),
+                            rs.getString("senha")
+                    );
+                } else {
+                    return new Cliente(
+                            rs.getString("cpf"),
+                            rs.getString("nome"),
+                            rs.getString("email"),
+                            rs.getString("senha")
+                    );
+                }
+            }
         }
     }
 
-    /**
-     * Insere um novo usuário (Administrador ou Cliente) na tabela.
-     * @param u objeto Usuario a ser inserido
-     * @throws SQLException em caso de erro de acesso ao banco
-     */
-    public void inserirUsuario(Usuario u) throws SQLException {
-        String sql = "INSERT INTO Usuarios (cpf, nome, email, senha, acesso) VALUES (?, ?, ?, ?, ?)";
+    public void inserirCliente(Cliente c) throws SQLException {
+        String sql = "INSERT INTO Usuarios(cpf,nome,email,senha,acesso) VALUES(?,?,?,?,?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, u.getCpf());
-            stmt.setString(2, u.getNome());
-            stmt.setString(3, u.getEmail());
-            stmt.setString(4, u.getSenha());
-            stmt.setString(5, u.getAcesso().name());
-
+            stmt.setString(1, c.getCpf());
+            stmt.setString(2, c.getNome());
+            stmt.setString(3, c.getEmail());
+            stmt.setString(4, c.getSenha());
+            stmt.setString(5, Acesso.CLIENTE.name());
             stmt.executeUpdate();
         }
     }
 
-
-    /**
-     * Atualiza a senha de um usuário dado o e-mail.
-     * @return true se atualizou; false se e-mail não existe.
-     */
-    public boolean atualizarSenha(String email, String novaSenha) throws SQLException {
-        String sql = "UPDATE Usuarios SET senha = ? WHERE email = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, novaSenha);
-            stmt.setString(2, email);
-            return stmt.executeUpdate() > 0;
-        }
-    }
-
-
-
-
-    /**
-     * Busca um usuário pelo e-mail e senha.
-     * Retorna uma instância de Administrador ou Cliente, conforme o campo acesso.
-     * @param email  e-mail informado
-     * @param senha  senha informada
-     * @return Usuario (Administrador ou Cliente) ou null se não encontrado
-     * @throws SQLException em caso de erro de acesso ao banco
-     */
     public Usuario buscarPorEmailSenha(String email, String senha) throws SQLException {
         String sql = "SELECT * FROM Usuarios WHERE email = ? AND senha = ?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -86,19 +57,120 @@ public class UsuarioDAO {
             stmt.setString(2, senha);
 
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    String cpf       = rs.getString("cpf");
-                    String nome      = rs.getString("nome");
-                    Acesso acesso    = Acesso.valueOf(rs.getString("acesso"));
+                if (!rs.next()) return null;
 
-                    if (acesso == Acesso.ADMINISTRADOR) {
-                        return new Administrador(cpf, nome, email, senha);
-                    } else {
-                        return new Cliente(cpf, nome, email, senha);
-                    }
+                String acesso = rs.getString("acesso");
+                if (Acesso.ADMINISTRADOR.name().equals(acesso)) {
+                    return new Administrador(
+                            rs.getString("cpf"),
+                            rs.getString("nome"),
+                            rs.getString("email"),
+                            rs.getString("senha")
+                    );
+                } else {
+                    return new Cliente(
+                            rs.getString("cpf"),
+                            rs.getString("nome"),
+                            rs.getString("email"),
+                            rs.getString("senha")
+                    );
                 }
             }
         }
-        return null;
     }
+
+    /**
+     * Insere um administrador no sistema.
+     */
+    public void inserirAdministrador(Administrador a) throws SQLException {
+        String sql = "INSERT INTO Usuarios(cpf,nome,email,senha,acesso) VALUES(?,?,?,?,?)";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, a.getCpf());
+            stmt.setString(2, a.getNome());
+            stmt.setString(3, a.getEmail());
+            stmt.setString(4, a.getSenha());
+            stmt.setString(5, Acesso.ADMINISTRADOR.name());
+            stmt.executeUpdate();
+        }
+    }
+
+    public List<Usuario> buscarPorNome(String nome) throws SQLException {
+        List<Usuario> lista = new ArrayList<>();
+        String sql = "SELECT * FROM Usuarios WHERE nome LIKE ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, "%" + nome + "%");
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapearUsuario(rs));
+                }
+            }
+        }
+        return lista;
+    }
+
+
+    public List<Usuario> buscarPorEmail(String email) throws SQLException {
+        List<Usuario> lista = new ArrayList<>();
+        String sql = "SELECT * FROM Usuarios WHERE email LIKE ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, "%" + email + "%");
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapearUsuario(rs));
+                }
+            }
+        }
+        return lista;
+    }
+
+    private Usuario mapearUsuario(ResultSet rs) throws SQLException {
+        String acesso = rs.getString("acesso");
+        if (Acesso.ADMINISTRADOR.name().equals(acesso)) {
+            return new Administrador(
+                    rs.getString("cpf"),
+                    rs.getString("nome"),
+                    rs.getString("email"),
+                    rs.getString("senha")
+            );
+        } else {
+            return new Cliente(
+                    rs.getString("cpf"),
+                    rs.getString("nome"),
+                    rs.getString("email"),
+                    rs.getString("senha")
+            );
+        }
+    }
+
+    public void atualizarCliente(Cliente c) throws SQLException {
+        String sql = "UPDATE Usuarios SET nome=?, email=?, senha=? WHERE cpf=?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, c.getNome());
+            stmt.setString(2, c.getEmail());
+            stmt.setString(3, c.getSenha());
+            stmt.setString(4, c.getCpf());
+            stmt.executeUpdate();
+        }
+    }
+
+    public void atualizarAdministrador(Administrador a) throws SQLException {
+        String sql = "UPDATE Usuarios SET nome=?, email=?, senha=? WHERE cpf=?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, a.getNome());
+            stmt.setString(2, a.getEmail());
+            stmt.setString(3, a.getSenha());
+            stmt.setString(4, a.getCpf());
+            stmt.executeUpdate();
+        }
+    }
+
+
+
 }

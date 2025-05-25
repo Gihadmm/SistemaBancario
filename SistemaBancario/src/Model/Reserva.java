@@ -1,48 +1,59 @@
 package Model;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 
 public class Reserva {
     private int id;
-    private LocalDateTime dataReserva;
-    private Date dataParaEmprestimo;
-    private StatusReserva status;
-    private Livro livroReservado;
+    private Cliente cliente;
+    private Livro livro;
+    private Date dataReserva;
+    private Date dataDisponibilidadePrevista;
 
-    public Reserva(int id, Livro livro) {
-        this.id = id;
-        this.livroReservado = livro;
-        this.dataReserva = LocalDateTime.now();
-        this.status = StatusReserva.ATIVA;
+    /**
+     * Construtor principal.
+     *
+     * @param cliente                      quem fez a reserva
+     * @param livro                        livro reservado
+     * @param dataReserva                  data em que a reserva foi efetuada
+     * @param dataDisponibilidadePrevista  data em que o livro deve ficar disponível
+     */
+    public Reserva(Cliente cliente,
+                   Livro livro,
+                   Date dataReserva,
+                   Date dataDisponibilidadePrevista) {
+        this.cliente = cliente;
+        this.livro = livro;
+        this.dataReserva = dataReserva;
+        this.dataDisponibilidadePrevista = dataDisponibilidadePrevista;
     }
 
-    // Getters e setters
+    // ——— Getters / Setters ———
+
     public int getId() {
         return id;
     }
 
-    public LocalDateTime getDataReserva() {
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public Cliente getCliente() {
+        return cliente;
+    }
+
+    public Livro getLivro() {
+        return livro;
+    }
+
+    public Date getDataReserva() {
         return dataReserva;
     }
 
-    public Date getDataParaEmprestimo() {
-        return dataParaEmprestimo;
+    public Date getDataDisponibilidadePrevista() {
+        return dataDisponibilidadePrevista;
     }
 
-    public void setDataParaEmprestimo(Date dataParaEmprestimo) {
-        this.dataParaEmprestimo = dataParaEmprestimo;
-    }
-
-    public StatusReserva getStatus() {
-        return status;
-    }
-
-    public void setStatus(StatusReserva status) {
-        this.status = status;
-    }
-
-    public Livro getLivroReservado() {
-        return livroReservado;
+    public void setDataDisponibilidadePrevista(Date dataDisponibilidadePrevista) {
+        this.dataDisponibilidadePrevista = dataDisponibilidadePrevista;
     }
 }

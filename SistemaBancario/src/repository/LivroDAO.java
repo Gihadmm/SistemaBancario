@@ -1,16 +1,23 @@
 package repository;
 
 import Model.Livro;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class LivroDAO {
 
-    // 1) INSERIR um novo livro
+    /**
+     * Insere um novo livro e atribui o ID gerado ao objeto.
+     */
     public void inserir(Livro livro) throws SQLException {
-        String sql = "INSERT INTO Livros (titulo, autor, genero, anoPublicacao, editora, isbn, quantidadeExemplares, disponivel, reservado) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = """
+            INSERT INTO Livros
+              (titulo, autor, genero, anoPublicacao, editora, isbn,
+               quantidadeExemplares, disponivel)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """;
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -22,7 +29,6 @@ public class LivroDAO {
             stmt.setString(6, livro.getIsbn());
             stmt.setInt(7, livro.getQuantidadeExemplares());
             stmt.setBoolean(8, livro.isDisponivel());
-            stmt.setBoolean(9, livro.isReservado());
 
             stmt.executeUpdate();
             try (ResultSet rs = stmt.getGeneratedKeys()) {
@@ -33,22 +39,26 @@ public class LivroDAO {
         }
     }
 
-    // 2) BUSCAR todos os livros
+    /**
+     * Retorna todos os livros cadastrados.
+     */
     public List<Livro> buscarTodos() throws SQLException {
-        List<Livro> livros = new ArrayList<>();
+        List<Livro> lista = new ArrayList<>();
         String sql = "SELECT * FROM Livros";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                livros.add(mapearLivro(rs));
+                lista.add(mapearLivro(rs));
             }
         }
-        return livros;
+        return lista;
     }
 
-    // 3) BUSCAR livro por ID
+    /**
+     * Busca um livro pelo ID.
+     */
     public Livro buscarPorId(int id) throws SQLException {
         String sql = "SELECT * FROM Livros WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -64,9 +74,11 @@ public class LivroDAO {
         return null;
     }
 
-    // 🔍 NOVO: Buscar por título (parcial ou completo)
+    /**
+     * Busca livros cujo título contenha o parâmetro.
+     */
     public List<Livro> buscarPorTitulo(String titulo) throws SQLException {
-        List<Livro> livros = new ArrayList<>();
+        List<Livro> lista = new ArrayList<>();
         String sql = "SELECT * FROM Livros WHERE titulo LIKE ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -74,16 +86,18 @@ public class LivroDAO {
             stmt.setString(1, "%" + titulo + "%");
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    livros.add(mapearLivro(rs));
+                    lista.add(mapearLivro(rs));
                 }
             }
         }
-        return livros;
+        return lista;
     }
 
-    // 🔍 NOVO: Buscar por autor
+    /**
+     * Busca livros cujo autor contenha o parâmetro.
+     */
     public List<Livro> buscarPorAutor(String autor) throws SQLException {
-        List<Livro> livros = new ArrayList<>();
+        List<Livro> lista = new ArrayList<>();
         String sql = "SELECT * FROM Livros WHERE autor LIKE ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -91,16 +105,18 @@ public class LivroDAO {
             stmt.setString(1, "%" + autor + "%");
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    livros.add(mapearLivro(rs));
+                    lista.add(mapearLivro(rs));
                 }
             }
         }
-        return livros;
+        return lista;
     }
 
-    // 🔍 NOVO: Buscar por gênero
+    /**
+     * Busca livros cujo gênero contenha o parâmetro.
+     */
     public List<Livro> buscarPorGenero(String genero) throws SQLException {
-        List<Livro> livros = new ArrayList<>();
+        List<Livro> lista = new ArrayList<>();
         String sql = "SELECT * FROM Livros WHERE genero LIKE ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -108,18 +124,23 @@ public class LivroDAO {
             stmt.setString(1, "%" + genero + "%");
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    livros.add(mapearLivro(rs));
+                    lista.add(mapearLivro(rs));
                 }
             }
         }
-        return livros;
+        return lista;
     }
 
-    // 4) ATUALIZAR todos os campos de um livro
+    /**
+     * Atualiza todos os campos de um livro.
+     */
     public void atualizar(Livro livro) throws SQLException {
-        String sql = "UPDATE Livros SET titulo = ?, autor = ?, genero = ?, anoPublicacao = ?, " +
-                "editora = ?, isbn = ?, quantidadeExemplares = ?, disponivel = ?, reservado = ? " +
-                "WHERE id = ?";
+        String sql = """
+            UPDATE Livros
+               SET titulo = ?, autor = ?, genero = ?, anoPublicacao = ?,
+                   editora = ?, isbn = ?, quantidadeExemplares = ?, disponivel = ?
+             WHERE id = ?
+        """;
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -131,14 +152,15 @@ public class LivroDAO {
             stmt.setString(6, livro.getIsbn());
             stmt.setInt(7, livro.getQuantidadeExemplares());
             stmt.setBoolean(8, livro.isDisponivel());
-            stmt.setBoolean(9, livro.isReservado());
-            stmt.setInt(10, livro.getId());
+            stmt.setInt(9, livro.getId());
 
             stmt.executeUpdate();
         }
     }
 
-    // 5) ATUALIZAR apenas a disponibilidade
+    /**
+     * Atualiza apenas a disponibilidade de um livro.
+     */
     public void atualizarDisponibilidade(int id, boolean disponivel) throws SQLException {
         String sql = "UPDATE Livros SET disponivel = ? WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -150,18 +172,21 @@ public class LivroDAO {
         }
     }
 
-    // 6) DELETAR um livro pelo ID
+    /**
+     * Remove um livro pelo ID.
+     */
     public void deletar(int id) throws SQLException {
         String sql = "DELETE FROM Livros WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setInt(1, id);
             stmt.executeUpdate();
         }
     }
 
-    // ——— Método auxiliar para mapear um ResultSet a um objeto Livro ———
+    /**
+     * Mapeia uma linha de ResultSet para um objeto Livro.
+     */
     private Livro mapearLivro(ResultSet rs) throws SQLException {
         Livro livro = new Livro(
                 rs.getInt("id"),
@@ -173,9 +198,8 @@ public class LivroDAO {
                 rs.getString("isbn"),
                 rs.getInt("quantidadeExemplares")
         );
-        // Caso tenha as colunas no banco, descomente:
-        //livro.setDisponivel(rs.getBoolean("disponivel"));
-        //livro.setReservado(rs.getBoolean("reservado"));
+        // Disponibilidade
+        livro.setDisponivel(rs.getBoolean("disponivel"));
         return livro;
     }
 }

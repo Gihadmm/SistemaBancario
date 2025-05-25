@@ -3,8 +3,7 @@ import Model.Livro;
 
 import java.util.List;
 
-public class
-TestaLivroDAO {
+public class TestaLivroDAO {
     public static void main(String[] args) {
         LivroDAO dao = new LivroDAO();
 
