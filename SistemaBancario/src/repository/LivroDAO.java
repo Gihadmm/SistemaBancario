@@ -1,15 +1,18 @@
 package repository;
 
 import Model.Livro;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Classe DAO responsável pelas operações de persistência da entidade Livro.
+ * Permite inserir, consultar, atualizar e excluir livros do banco de dados.
+ */
 public class LivroDAO {
 
     /**
-     * Insere um novo livro e atribui o ID gerado ao objeto.
+     * Insere um novo livro na tabela e define seu ID gerado automaticamente.
      */
     public void inserir(Livro livro) throws SQLException {
         String sql = """
@@ -40,7 +43,7 @@ public class LivroDAO {
     }
 
     /**
-     * Retorna todos os livros cadastrados.
+     * Retorna todos os livros cadastrados no sistema.
      */
     public List<Livro> buscarTodos() throws SQLException {
         List<Livro> lista = new ArrayList<>();
@@ -57,7 +60,7 @@ public class LivroDAO {
     }
 
     /**
-     * Busca um livro pelo ID.
+     * Busca um livro pelo seu ID único.
      */
     public Livro buscarPorId(int id) throws SQLException {
         String sql = "SELECT * FROM Livros WHERE id = ?";
@@ -75,7 +78,7 @@ public class LivroDAO {
     }
 
     /**
-     * Busca livros cujo título contenha o parâmetro.
+     * Busca livros que contenham o título informado (filtro parcial).
      */
     public List<Livro> buscarPorTitulo(String titulo) throws SQLException {
         List<Livro> lista = new ArrayList<>();
@@ -94,7 +97,7 @@ public class LivroDAO {
     }
 
     /**
-     * Busca livros cujo autor contenha o parâmetro.
+     * Busca livros que contenham o nome do autor informado.
      */
     public List<Livro> buscarPorAutor(String autor) throws SQLException {
         List<Livro> lista = new ArrayList<>();
@@ -113,7 +116,7 @@ public class LivroDAO {
     }
 
     /**
-     * Busca livros cujo gênero contenha o parâmetro.
+     * Busca livros que contenham o gênero informado.
      */
     public List<Livro> buscarPorGenero(String genero) throws SQLException {
         List<Livro> lista = new ArrayList<>();
@@ -132,7 +135,7 @@ public class LivroDAO {
     }
 
     /**
-     * Atualiza todos os campos de um livro.
+     * Atualiza todos os campos de um livro já existente.
      */
     public void atualizar(Livro livro) throws SQLException {
         String sql = """
@@ -159,7 +162,7 @@ public class LivroDAO {
     }
 
     /**
-     * Atualiza apenas a disponibilidade de um livro.
+     * Atualiza apenas o campo de disponibilidade do livro (útil após empréstimo ou devolução).
      */
     public void atualizarDisponibilidade(int id, boolean disponivel) throws SQLException {
         String sql = "UPDATE Livros SET disponivel = ? WHERE id = ?";
@@ -173,19 +176,20 @@ public class LivroDAO {
     }
 
     /**
-     * Remove um livro pelo ID.
+     * Remove um livro do banco com base no seu ID.
      */
     public void deletar(int id) throws SQLException {
         String sql = "DELETE FROM Livros WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, id);
             stmt.executeUpdate();
         }
     }
 
     /**
-     * Mapeia uma linha de ResultSet para um objeto Livro.
+     * Converte uma linha do ResultSet para um objeto Livro.
      */
     private Livro mapearLivro(ResultSet rs) throws SQLException {
         Livro livro = new Livro(
@@ -198,7 +202,6 @@ public class LivroDAO {
                 rs.getString("isbn"),
                 rs.getInt("quantidadeExemplares")
         );
-        // Disponibilidade
         livro.setDisponivel(rs.getBoolean("disponivel"));
         return livro;
     }

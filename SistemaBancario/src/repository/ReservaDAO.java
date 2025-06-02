@@ -8,10 +8,18 @@ import java.sql.*;
 import java.util.*;
 import java.util.Date;
 
+/**
+ * Classe DAO responsável pelas operações de persistência da entidade Reserva.
+ * Permite inserir novas reservas e consultar reservas existentes por cliente.
+ */
 public class ReservaDAO {
 
     /**
-     * Insere uma nova reserva, incluindo a data prevista de disponibilidade
+     * Insere uma nova reserva no banco de dados.
+     * Define a data da reserva e a data estimada de disponibilidade do livro.
+     *
+     * @param r Reserva a ser inserida
+     * @throws SQLException em caso de erro de acesso ao banco
      */
     public void inserir(Reserva r) throws SQLException {
         String sql = "INSERT INTO Reservas (cpf_cliente, id_livro, data_reserva, data_disponibilidade_prevista) VALUES (?, ?, ?, ?)";
@@ -33,7 +41,12 @@ public class ReservaDAO {
     }
 
     /**
-     * Lista todas as reservas de um cliente, incluindo a data prevista
+     * Retorna todas as reservas feitas por um cliente específico.
+     * Inclui os dados da reserva e a previsão de disponibilidade.
+     *
+     * @param cpf CPF do cliente
+     * @return lista de Reservas do cliente
+     * @throws SQLException em caso de erro de acesso ao banco
      */
     public List<Reserva> listarPorCliente(String cpf) throws SQLException {
         String sql = "SELECT * FROM Reservas WHERE cpf_cliente = ?";
@@ -58,6 +71,13 @@ public class ReservaDAO {
         return lista;
     }
 
+    /**
+     * Verifica se um livro possui reservas ativas.
+     *
+     * @param livroId ID do livro
+     * @return true se houver pelo menos uma reserva ativa, false caso contrário
+     * @throws SQLException em caso de erro de acesso ao banco
+     */
     public boolean temReservasAtivas(int livroId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM Reservas WHERE id_livro = ?";
         try (Connection conn = DatabaseConnection.getConnection();

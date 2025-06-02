@@ -7,17 +7,20 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Classe responsável pelas operações de persistência relacionadas aos clientes (acesso = 'CLIENTE').
+ * Utiliza a tabela 'Usuarios' do banco de dados.
+ */
 public class ClienteDAO {
 
     /**
-     * Insere um novo cliente na tabela Usuarios.
+     * Insere um novo cliente na tabela 'Usuarios'.
      *
-     * @param cliente o objeto Cliente a inserir
-     * @throws SQLException em caso de erro de banco
+     * @param cliente o objeto Cliente a ser inserido
+     * @throws SQLException em caso de falha ao interagir com o banco
      */
     public void inserir(Cliente cliente) throws SQLException {
-        String sql = "INSERT INTO Usuarios (cpf, nome, email, senha, acesso) " +
-                "VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Usuarios (cpf, nome, email, senha, acesso) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -25,18 +28,18 @@ public class ClienteDAO {
             stmt.setString(2, cliente.getNome());
             stmt.setString(3, cliente.getEmail());
             stmt.setString(4, cliente.getSenha());
-            stmt.setString(5, Acesso.CLIENTE.name());
+            stmt.setString(5, Acesso.CLIENTE.name()); // Define o tipo de acesso como CLIENTE
 
-            stmt.executeUpdate();
+            stmt.executeUpdate(); // Executa a inserção
         }
     }
 
     /**
-     * Busca um cliente pelo CPF (só retorna se for acesso CLIENTE).
+     * Busca um cliente pelo CPF (somente se for CLIENTE).
      *
      * @param cpf o CPF do cliente
-     * @return o Cliente ou null se não achar
-     * @throws SQLException em caso de erro de banco
+     * @return Cliente correspondente ou null se não encontrado
+     * @throws SQLException em caso de falha no banco
      */
     public Cliente buscarPorCpf(String cpf) throws SQLException {
         String sql = "SELECT * FROM Usuarios WHERE cpf = ? AND acesso = 'CLIENTE'";
@@ -54,10 +57,10 @@ public class ClienteDAO {
     }
 
     /**
-     * Lista todos os clientes (registros com acesso = 'CLIENTE').
+     * Lista todos os clientes cadastrados no sistema.
      *
-     * @return lista de todos os Clientes
-     * @throws SQLException em caso de erro de banco
+     * @return Lista de todos os objetos Cliente
+     * @throws SQLException em caso de erro na consulta
      */
     public List<Cliente> listarTodos() throws SQLException {
         List<Cliente> lista = new ArrayList<>();
@@ -75,10 +78,10 @@ public class ClienteDAO {
     }
 
     /**
-     * Atualiza nome, email e senha de um cliente existente.
+     * Atualiza os dados (nome, email, senha) de um cliente.
      *
-     * @param cliente o Cliente com dados atualizados
-     * @throws SQLException em caso de erro de banco
+     * @param cliente objeto Cliente com dados atualizados
+     * @throws SQLException em caso de falha ao atualizar
      */
     public void atualizar(Cliente cliente) throws SQLException {
         String sql = "UPDATE Usuarios SET nome = ?, email = ?, senha = ? " +
@@ -96,10 +99,10 @@ public class ClienteDAO {
     }
 
     /**
-     * Remove um cliente (registros com acesso = 'CLIENTE').
+     * Remove um cliente da base de dados.
      *
-     * @param cpf CPF do cliente a remover
-     * @throws SQLException em caso de erro de banco
+     * @param cpf CPF do cliente a ser removido
+     * @throws SQLException em caso de erro na exclusão
      */
     public void deletar(String cpf) throws SQLException {
         String sql = "DELETE FROM Usuarios WHERE cpf = ? AND acesso = 'CLIENTE'";
@@ -111,7 +114,13 @@ public class ClienteDAO {
         }
     }
 
-    // ——— Método auxiliar para mapear um ResultSet em Cliente ———
+    /**
+     * Método auxiliar para mapear um ResultSet para um objeto Cliente.
+     *
+     * @param rs resultado da consulta
+     * @return objeto Cliente
+     * @throws SQLException em caso de erro de leitura
+     */
     private Cliente mapearCliente(ResultSet rs) throws SQLException {
         String cpf = rs.getString("cpf");
         String nome = rs.getString("nome");
@@ -121,9 +130,14 @@ public class ClienteDAO {
         return new Cliente(cpf, nome, email, senha);
     }
 
+    /**
+     * Método alternativo (alias) para buscar um cliente pelo CPF.
+     *
+     * @param cpf CPF do cliente
+     * @return Cliente correspondente
+     * @throws SQLException em caso de erro
+     */
     public Cliente buscarPorId(String cpf) throws SQLException {
-        // reutiliza a busca por CPF
-        return buscarPorCpf(cpf);
+        return buscarPorCpf(cpf); // Reaproveita a lógica do método buscarPorCpf
     }
-
 }

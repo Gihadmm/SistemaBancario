@@ -1,5 +1,9 @@
 package Model;
 
+/**
+ * Representa um livro do acervo da biblioteca, com suas informações
+ * bibliográficas e controle de disponibilidade com base na quantidade de exemplares.
+ */
 public class Livro {
     private int id;
     private String titulo;
@@ -11,6 +15,18 @@ public class Livro {
     private int quantidadeExemplares;
     private boolean disponivel;
 
+    /**
+     * Construtor completo utilizado ao recuperar um livro do banco de dados.
+     *
+     * @param id ID do livro
+     * @param titulo Título da obra
+     * @param autor Nome do autor
+     * @param genero Gênero literário
+     * @param anoPublicacao Ano em que foi publicado
+     * @param editora Nome da editora
+     * @param isbn Código ISBN
+     * @param quantidadeExemplares Quantidade disponível no acervo
+     */
     public Livro(int id, String titulo, String autor, String genero,
                  int anoPublicacao, String editora, String isbn, int quantidadeExemplares) {
         this.id = id;
@@ -20,7 +36,7 @@ public class Livro {
         this.anoPublicacao = anoPublicacao;
         this.editora = editora;
         this.isbn = isbn;
-        setQuantidadeExemplares(quantidadeExemplares);
+        setQuantidadeExemplares(quantidadeExemplares); // define a disponibilidade automaticamente
     }
 
     // Getters
@@ -42,19 +58,33 @@ public class Livro {
     public void setAnoPublicacao(int ano) { this.anoPublicacao = ano; }
     public void setEditora(String editora) { this.editora = editora; }
     public void setIsbn(String isbn) { this.isbn = isbn; }
+
+    /**
+     * Define a quantidade de exemplares e atualiza a disponibilidade automaticamente.
+     */
     public void setQuantidadeExemplares(int q) {
         this.quantidadeExemplares = q;
         this.disponivel = q > 0;
     }
+
     public void setDisponivel(boolean disponivel) {
         this.disponivel = disponivel;
     }
 
-    // Domínio
+    // Métodos de domínio
+
+    /**
+     * Empresta uma unidade do livro, reduzindo a quantidade de exemplares.
+     * Se não houver disponíveis, lança exceção.
+     */
     public void emprestar() {
         if (!disponivel) throw new IllegalStateException("Livro indisponível.");
         setQuantidadeExemplares(quantidadeExemplares - 1);
     }
+
+    /**
+     * Devolve uma unidade do livro, aumentando a quantidade de exemplares.
+     */
     public void devolver() {
         setQuantidadeExemplares(quantidadeExemplares + 1);
     }

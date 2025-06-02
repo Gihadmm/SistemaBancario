@@ -5,12 +5,17 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Classe DAO responsável pelo gerenciamento dos Exemplares de livros no banco de dados.
+ * Permite inserir, buscar, atualizar e excluir registros de exemplares.
+ */
 public class ExemplarDAO {
 
     /**
-     * Insere um novo exemplar no banco e define seu ID gerado.
-     * @param ex Exemplar a ser inserido.
-     * @throws SQLException em caso de erro de acesso ao banco.
+     * Insere um novo exemplar no banco e define seu ID gerado automaticamente.
+     *
+     * @param ex Exemplar a ser inserido
+     * @throws SQLException em caso de erro de acesso ao banco
      */
     public void inserir(Exemplar ex) throws SQLException {
         String sql = "INSERT INTO Exemplares (livro_id, numero_copia, disponivel) VALUES (?, ?, ?)";
@@ -22,6 +27,7 @@ public class ExemplarDAO {
             stmt.setBoolean(3, ex.isDisponivel());
             stmt.executeUpdate();
 
+            // Obtém e define o ID gerado
             try (ResultSet keys = stmt.getGeneratedKeys()) {
                 if (keys.next()) {
                     ex.setId(keys.getInt(1));
@@ -32,9 +38,9 @@ public class ExemplarDAO {
 
     /**
      * Busca um exemplar pelo seu ID.
-     * @param id ID do exemplar.
-     * @return o Exemplar, ou null se não encontrado.
-     * @throws SQLException em caso de erro de acesso ao banco.
+     *
+     * @param id ID do exemplar
+     * @return o Exemplar encontrado ou null
      */
     public Exemplar buscarPorId(int id) throws SQLException {
         String sql = "SELECT * FROM Exemplares WHERE id = ?";
@@ -52,10 +58,10 @@ public class ExemplarDAO {
     }
 
     /**
-     * Retorna todos os exemplares de um determinado livro.
-     * @param livroId ID do livro.
-     * @return lista de exemplares.
-     * @throws SQLException em caso de erro de acesso ao banco.
+     * Busca todos os exemplares de um livro específico.
+     *
+     * @param livroId ID do livro
+     * @return lista de exemplares do livro
      */
     public List<Exemplar> buscarPorLivro(int livroId) throws SQLException {
         List<Exemplar> lista = new ArrayList<>();
@@ -74,9 +80,9 @@ public class ExemplarDAO {
     }
 
     /**
-     * Retorna todos os exemplares disponíveis (disponivel = true).
-     * @return lista de exemplares disponíveis.
-     * @throws SQLException em caso de erro de acesso ao banco.
+     * Retorna todos os exemplares disponíveis no sistema.
+     *
+     * @return lista de exemplares com disponivel = true
      */
     public List<Exemplar> buscarTodosDisponiveis() throws SQLException {
         List<Exemplar> lista = new ArrayList<>();
@@ -93,9 +99,9 @@ public class ExemplarDAO {
     }
 
     /**
-     * Atualiza o estado de um exemplar no banco (por exemplo, disponivel).
-     * @param ex Exemplar com dados atualizados.
-     * @throws SQLException em caso de erro de acesso ao banco.
+     * Atualiza os dados de um exemplar no banco.
+     *
+     * @param ex Exemplar com informações atualizadas
      */
     public void atualizar(Exemplar ex) throws SQLException {
         String sql = "UPDATE Exemplares SET livro_id = ?, numero_copia = ?, disponivel = ? WHERE id = ?";
@@ -111,9 +117,9 @@ public class ExemplarDAO {
     }
 
     /**
-     * Remove um exemplar pelo ID.
-     * @param id ID do exemplar a remover.
-     * @throws SQLException em caso de erro de acesso ao banco.
+     * Remove um exemplar do banco pelo seu ID.
+     *
+     * @param id ID do exemplar a ser removido
      */
     public void deletar(int id) throws SQLException {
         String sql = "DELETE FROM Exemplares WHERE id = ?";
@@ -126,7 +132,10 @@ public class ExemplarDAO {
     }
 
     /**
-     * Mapeia a linha do ResultSet para um objeto Exemplar.
+     * Mapeia uma linha do ResultSet para um objeto Exemplar.
+     *
+     * @param rs ResultSet com os dados
+     * @return objeto Exemplar construído
      */
     private Exemplar mapearExemplar(ResultSet rs) throws SQLException {
         return new Exemplar(
