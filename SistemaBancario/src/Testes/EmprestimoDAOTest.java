@@ -11,6 +11,7 @@ import repository.LivroDAO;
 import org.junit.jupiter.api.*;
 
 import java.sql.SQLException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -45,12 +46,20 @@ public class EmprestimoDAOTest {
     @Test
     @Order(1)
     void testInserirEmprestimo() throws SQLException {
-        // Ajuste os parâmetros conforme seu construtor real:
-        emprestimo = new Emprestimo(clienteTeste, livroTeste, new Date(), null, StatusEmprestimo.ATIVO);
+        // Calcular data de devolução prevista (7 dias após hoje)
+        Date hoje = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(hoje);
+        cal.add(Calendar.DAY_OF_MONTH, 7);
+        Date devolucaoPrevista = cal.getTime();
+
+        // Criar o objeto Emprestimo com parâmetros corretos
+        emprestimo = new Emprestimo(0, hoje, devolucaoPrevista, livroTeste, clienteTeste);
+        emprestimo.setStatus(StatusEmprestimo.ATIVO);
 
         emprestimoDAO.inserir(emprestimo);
-        assertTrue(emprestimo.getId() > 0, "ID do empréstimo deve ser maior que 0.");
 
+        assertTrue(emprestimo.getId() > 0, "ID do empréstimo deve ser maior que 0.");
         System.out.println("✅ Empréstimo inserido com ID: " + emprestimo.getId());
     }
 
@@ -61,7 +70,10 @@ public class EmprestimoDAOTest {
         emprestimoDAO.atualizarDevolucao(emprestimo);
 
         List<Emprestimo> lista = emprestimoDAO.listarPorCliente(clienteTeste.getCpf());
-        Emprestimo atualizado = lista.stream().filter(e -> e.getId() == emprestimo.getId()).findFirst().orElse(null);
+        Emprestimo atualizado = lista.stream()
+                .filter(e -> e.getId() == emprestimo.getId())
+                .findFirst()
+                .orElse(null);
 
         assertNotNull(atualizado, "Empréstimo atualizado não encontrado.");
         assertNotNull(atualizado.getDataDevolucaoReal(), "Data de devolução não registrada.");

@@ -11,7 +11,7 @@ import java.sql.SQLException;
 public class DatabaseConnection {
 
     // Endereço DNS público da instância EC2 (AWS) onde o banco está hospedado
-    private static final String HOST = "ec2-3-81-172-170.compute-1.amazonaws.com";
+    private static final String HOST = "ec2-54-91-66-73.compute-1.amazonaws.com";
 
     // Porta padrão do SQL Server
     private static final int PORT = 1433;
